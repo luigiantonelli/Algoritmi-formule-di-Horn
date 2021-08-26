@@ -19,7 +19,7 @@ object Utils{
 		for(i <- variables){
 			var node = VarNode(i, 0)
 			map.addOne(i -> node)
-			g.addOne(node -> Nil)
+			g.addOne(node -> List[Edge]())
 			nodes = nodes + node
 		}
 		var clauses = formula.getClauses.toList.zipWithIndex
@@ -28,6 +28,7 @@ object Utils{
 		var c = (E(),0)
 		for(c <- posunitclauses){
 			var n = map(c._1.getLiterals.head)
+			n.initTruthValue(true)
 			g(n) = List(new Edge(n, truenode, c._2, false))//arco da variabile a true per ogni variabile che compare in clausole unitarie positive
 		}
 		for(c <- clauses){
@@ -53,7 +54,7 @@ object Utils{
 			}
 		}
 		var graph = new HornGraph(g, formula)
-		graph.graphSetup
+		graph.graphSetup(map, falsenode, truenode)
 		//println(graph)
 		(graph, falsenode)
 	}

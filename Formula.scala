@@ -49,8 +49,8 @@ class Formula(clauses: Set[Clause], corr: HashMap[Int, String]){
 		this.clauses.map(c => c.getLiterals).flatten
 	}
 	
-	def numPositiveLiterals: Int = {
-		this.getLiterals.filter(l => l > 0).size
+	def getPositiveLiterals: List[Int] = {
+		this.getLiterals.filter(l => l > 0).toList
 	}
 	
 	def getVariables: List[Int] = {

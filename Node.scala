@@ -10,8 +10,20 @@ sealed abstract class Node(var marked: Int){
 		this.truthvalue
 	}
 	
+	def resetComputed: Unit = {
+		this.computed = false
+	}
+	
+	def setComputed: Unit = {
+		this.computed = true
+	}
+	
 	def setTruthValue(b: Boolean):Unit = {
 		this.computed = true
+		this.truthvalue = b
+	}
+	
+	def initTruthValue(b: Boolean):Unit = {
 		this.truthvalue = b
 	}
 	
@@ -32,6 +44,10 @@ sealed abstract class Node(var marked: Int){
 	def setMarked(x: Int): Unit = {
 		this.marked = x
 	}
+	
+	def getMarked: Int = {
+		this.marked
+	}
 }
 
 case class VarNode(variable: Int, var marked_value: Int) extends Node(marked_value){
@@ -42,6 +58,10 @@ case class VarNode(variable: Int, var marked_value: Int) extends Node(marked_val
 	override def setMarked(x: Int): Unit = {
 		this.marked_value = x
 	}
+	
+	override def getMarked: Int = {
+		this.marked_value
+	}
 }
 case class TruthNode(value: Boolean, var marked_value: Int) extends Node(marked_value){
 	override def decreaseMarkedValue: Unit = {
@@ -50,6 +70,10 @@ case class TruthNode(value: Boolean, var marked_value: Int) extends Node(marked_
 	
 	override def setMarked(x: Int): Unit = {
 		this.marked_value = x
+	}
+	
+	override def getMarked: Int = {
+		this.marked_value
 	}
 }
 

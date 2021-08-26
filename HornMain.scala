@@ -14,7 +14,7 @@ object HornMain extends App{
 	else{
 		println("Non soddisfacibile.")
 	}
-	
+	*/
 	var res2 = Performance.profila(Solver.HornSat(f))
 	if(res2._1._1){
 		println("Soddisfacibile con HornSat (Ha impiegato " + res2._2*1E-9 + " sec).")
@@ -32,10 +32,17 @@ object HornMain extends App{
 	else{
 		println("Non soddisfacibile con greedyHorn (Ha impiegato " + res3._2*1E-9 + " sec).")
 	} 
-	*/
+
 	/*
 	var g:HornGraph = Utils.buildGraph(f)._1
 	println(g)*/
 	
-	println(Solver.graphHorn(f))
+	var res4 = Performance.profila(Solver.graphHorn(f))
+	if(res4._1._1){
+		println("Soddisfacibile con graphHorn")
+		println(res4._1._2)
+	}
+	else{
+		println("Non soddisfacibile con graphHorn")
+	} 
 }

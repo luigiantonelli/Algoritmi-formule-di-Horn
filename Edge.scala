@@ -19,6 +19,10 @@ class Edge(source: Node, target: Node, label: Int, var visited: Boolean){
 		this.target
 	}
 	
+	def getLabel: Int = {
+		this.label
+	}
+	
 	override def toString: String = {
 		this.source.toString + " -> " + this.target.toString 
 	}
