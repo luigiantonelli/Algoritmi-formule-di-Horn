@@ -1,3 +1,5 @@
+import scala.collection.mutable.HashMap
+
 object HornMain extends App{
 	//var f:Formula = new Formula(Set(U(1), C(Set(1,2,-3)), C(Set(-1,2,3,4)), C(Set(-5,-1)), C(Set(-5,-3)), U(4))) (soddisfacibile)
 	//var f: Formula = new Formula(Set(C(Set(1,-2,4)), C(Set(-2,3,4)), C(Set(-1,2,-3,-4)), C(Set(2,-3))))//soddisfacibile (fa anche chiamata ricorsiva)
@@ -15,6 +17,7 @@ object HornMain extends App{
 		println("Non soddisfacibile.")
 	}
 	*/
+	/*
 	var res2 = Performance.profila(Solver.HornSat(f))
 	if(res2._1._1){
 		println("Soddisfacibile con HornSat (Ha impiegato " + res2._2*1E-9 + " sec).")
@@ -31,12 +34,14 @@ object HornMain extends App{
 	}
 	else{
 		println("Non soddisfacibile con greedyHorn (Ha impiegato " + res3._2*1E-9 + " sec).")
-	} 
+	} */
 
 	/*
-	var g:HornGraph = Utils.buildGraph(f)._1
-	println(g)*/
-	
+	var g = Utils.buildGraph(f)
+	println(g._1)
+	println(g._1.getOutEdges(g._2))
+	*/
+	/*
 	var res4 = Performance.profila(Solver.graphHorn(f))
 	if(res4._1._1){
 		println("Soddisfacibile con graphHorn")
@@ -44,5 +49,22 @@ object HornMain extends App{
 	}
 	else{
 		println("Non soddisfacibile con graphHorn")
-	} 
+	} */
+	
+	var n = VarNode(2,1)
+	var n2 = VarNode(3,1)
+	var e1 = new Edge(n,n2,1, false)
+	var e2 = new Edge(n2,n,2, false)
+	var m = new HashMap[Node, List[Edge]](2,1)
+	m.addOne(n -> List(e1))
+	m.addOne(n2 -> List(e2))
+	println(m)
+	println(m(n))
+	println(m(n2))
+	println(m(VarNode(2,1)))
+	
+	var i = VarNode(0,0)
+	for(i <- m.keySet){
+		println(m(i))
+	}
 }

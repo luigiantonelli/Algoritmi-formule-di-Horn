@@ -1,11 +1,11 @@
 import scala.collection.mutable.HashMap
 
-class HornGraph(var graph: HashMap[Node, List[Edge]], formula: Formula){
+class HornGraph(formula: Formula){
+	var graph: HashMap[Node, List[Edge]] = new HashMap[Node, List[Edge]](formula.getVariables.size+2,1);
 	var numpos: Int = 0;
-	var clauses = formula.getClauses.toList.zipWithIndex
+	var clauses = formula.getClauses.toList.zipWithIndex;
 	var numargs: HashMap[Int, Int] = new HashMap[Int,Int](clauses.size,1);
-	var poslit: List[Int] = formula.getPositiveLiterals
-	var successors: HashMap[Node, Map[Int, List[Edge]]] = new HashMap[Node, Map[Int, List[Edge]]](poslit.size+2,1);
+	var successors: HashMap[Node, HashMap[Int, List[Edge]]] = new HashMap[Node, HashMap[Int, List[Edge]]](formula.getVariables.size+2,1);
 	
 	def initNumArgs: Unit = {
 		println("initNumArgs")
@@ -22,16 +22,28 @@ class HornGraph(var graph: HashMap[Node, List[Edge]], formula: Formula){
 			numargs(clist(i)._2) = numargs(clist(i)._2) - 1
 		}
 	}
-	def initSuccessors(map: HashMap[Int, Node], falsenode: Node, truenode: Node): Unit = {
-		println("initSuccessors")
+	private def createHashMapfromMap(map: Map[Int, List[Edge]]):HashMap[Int, List[Edge]] = {
 		var i = 0;
-		for(i <- poslit){
-			var node = map(i)
-			var edges = this.getOutEdges(node).groupBy(e => e.getLabel)
-			successors.addOne(node -> edges)
+		var keys = map.keySet
+		var maptoret = new HashMap[Int, List[Edge]](keys.size, 1)
+		for(i <- keys){
+			maptoret.addOne(i -> map(i))
 		}
-		successors.addOne(falsenode -> this.getOutEdges(falsenode).groupBy(e => e.getLabel))
-		successors.addOne(truenode -> this.getOutEdges(truenode).groupBy(e => e.getLabel))
+		maptoret
+	}
+	def initSuccessors: Unit = {
+		var i = VarNode(0,0)
+		for(i <- this.graph.keySet){
+			//println("\n\n map:" + map + "\n\n")
+			println("entro initSuccessors")
+			println("\n\n graph:" + this.graph + "\n\n")
+			//println(this.getOutEdges(VarNode(1,1)))
+			var edges = this.graph(i).groupBy(e => e.getLabel)
+			println("ok initSuccessors")
+			var mapedges = createHashMapfromMap(edges)
+			successors.addOne(i -> mapedges)
+			println("iterazione per " + i + "ora succ = " + successors+ "\n\n")
+		}
 	}
 	def setNumPos: Unit = {
 		println("setNumPos")
@@ -49,24 +61,34 @@ class HornGraph(var graph: HashMap[Node, List[Edge]], formula: Formula){
 		this.graph(n)
 	}
 	
-	def edgeSetup: Unit = {
-		this.graph.foreachEntry((k,v) => v.foreach(e => e.resetVisit))
+	def edgeSetup(rg: HashMap[Node, List[Edge]]): HashMap[Node, List[Edge]] = {
+		var rawgraph = rg
+		rawgraph.foreachEntry((k,v) => v.foreach(e => e.resetVisit))
+		rawgraph
 	}
 	
-	def nodeSetup: Unit = {
-		this.graph.foreachEntry((k,v) => k.setMarked(v.filter(e => e.isNotVisited).size))
+	def nodeSetup(rg: HashMap[Node, List[Edge]]): HashMap[Node, List[Edge]] = {
+		var rawgraph = rg
+		rawgraph.foreachEntry((k,v) => k.setMarked(v.filter(e => e.isNotVisited).size))
+		rawgraph
 	}
 	
-	def resetVisit: Unit = {
-		this.edgeSetup
-		this.nodeSetup
+	def resetVisit(rg: HashMap[Node, List[Edge]]): HashMap[Node, List[Edge]] = {
+		var rawgraph = rg
+		rawgraph = this.edgeSetup(rawgraph)
+		rawgraph = this.nodeSetup(rawgraph)
+		rawgraph
 	}
 	
-	def graphSetup(map: HashMap[Int, Node], falsenode: Node, truenode: Node): Unit = {
+	def graphSetup(rg: HashMap[Node, List[Edge]]): Unit = {
+		var rawgraph = rg
+		println("\n\nRawgraph" + rawgraph + "\n\n")
+		rawgraph = this.resetVisit(rawgraph)
+		println("\n\nRawgraph dopo modifica" + rawgraph + "\n\n")
+		this.graph = rawgraph	
 		this.initNumArgs
 		this.setNumPos
-		this.initSuccessors(map, falsenode, truenode)
-		this.resetVisit
+		this.initSuccessors
 	}
 	
 	override def toString: String = {
@@ -91,7 +113,10 @@ class HornGraph(var graph: HashMap[Node, List[Edge]], formula: Formula){
 				updateNumArgs(n.getVariable)
 			}
 			else{
+				println("\n\n" + this.successors + "\n\n")
+				println(this.successors.keySet)
 				var nsucc = this.successors(n)
+				println(this.successors.keySet)
 				println(nsucc)
 				var i = 0;
 				for(i <- nsucc.keySet){

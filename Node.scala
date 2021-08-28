@@ -48,6 +48,12 @@ sealed abstract class Node(var marked: Int){
 	def getMarked: Int = {
 		this.marked
 	}
+	
+	def equals(n: Node): Boolean = (this, n) match {
+		case (VarNode(v, m), VarNode(v2, m2)) => v == v2 && m == m2
+		case (TruthNode(v, m), TruthNode(v2, m2)) => v == v2 && m == m2
+		case _ => false
+	}
 }
 
 case class VarNode(variable: Int, var marked_value: Int) extends Node(marked_value){

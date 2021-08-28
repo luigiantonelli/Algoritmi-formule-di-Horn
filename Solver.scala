@@ -8,7 +8,7 @@ object Solver{
 			(false,Nil)
 		}
 		else{
-			var (graph, falsenode):(HornGraph, TruthNode) = Utils.buildGraph(f)
+			var (graph, falsenode):(HornGraph, Node) = Utils.buildGraph(f)
 			println(graph)
 			if(graph.getNumPos == 0){
 				(true, graph.getResult)
