@@ -8,22 +8,22 @@ object Solver{
 			(false,Nil)
 		}
 		else{
-			var (graph, falsenode):(HornGraph, Node) = Utils.buildGraph(f)
+			var graph: HornGraph = Utils.buildGraph(f)
 			println(graph)
 			if(graph.getNumPos == 0){
 				(true, graph.getResult)
 			}
 			else{
-				graph.traverse(falsenode)
-				if(falsenode.getTruthValue){
+				graph.traverse(0)
+				if(graph.getNode(0).getTruthValue){
 					(false, Nil)
 				}
 				else{
-					var n = VarNode(0, 0)
+					var n = VarNode(0, 0, 0)
 					var nodes = graph.getNodes
 					for(n <- nodes){
 						if(!n.isComputed)
-							graph.traverse(n)
+							graph.traverse(n.getIndex)
 					}				
 					(true, graph.getResult)
 				}

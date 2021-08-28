@@ -6,57 +6,60 @@ object Utils{
 			val sset = s.toSet
 			(cset -- sset).toList
 	}
-	def buildGraph(formula: Formula):(HornGraph, TruthNode) = {//restituisce il grafo e il nodo false da cui iniziare la visita
+	def buildGraph(formula: Formula):HornGraph = {//restituisce il grafo e il nodo false da cui iniziare la visita
 		val variables = formula.getVariables
-		var g = new HashMap[Node, List[Edge]](variables.size + 2, 1)
+		var g = new HashMap[Int, List[Edge]](variables.size + 2, 1)
+		var nodes = new HashMap[Int, Node](variables.size + 2, 1)
 		var i = 0;
-		var truenode = TruthNode(true, 0)
-		var falsenode = TruthNode(false, 0)
-		g.addOne(truenode -> Nil)
-		g.addOne(falsenode -> Nil)
-		var nodes = Set[Node]()
-		var map = new HashMap[Int, Node](variables.size, 1)
+		var truenode = TruthNode(true, 0, variables.size+1)
+		var falsenode = TruthNode(false, 0, 0)
+		nodes.addOne(0 -> falsenode)
+		nodes.addOne(variables.size+1 -> truenode)
+		g.addOne(0 -> List[Edge]())
+		g.addOne(variables.size+1 -> List[Edge]())
+		//var nodes = Set[Node]()
+		
 		for(i <- variables){
-			var node = VarNode(i, 0)
-			map.addOne(i -> node)
-			g.addOne(node -> List[Edge]())
-			nodes = nodes + node
+			var node = VarNode(i, 0, i)
+			nodes.addOne(i -> node)
+			g.addOne(i -> List[Edge]())
+			//nodes = nodes + node
 		}
 		var clauses = formula.getClauses.toList.zipWithIndex
 		var posunitclauses = clauses.filter(c => c._1.isUnit).filter(c => c._1.getLiterals.head > 0)
 		clauses = removeClauses(clauses, posunitclauses)
 		var c = (E(),0)
 		for(c <- posunitclauses){
-			var n = map(c._1.getLiterals.head)
+			var n = nodes(c._1.getLiterals.head)
 			n.initTruthValue(true)
-			g(n) = List(new Edge(n, truenode, c._2, false))//arco da variabile a true per ogni variabile che compare in clausole unitarie positive
+			g(c._1.getLiterals.head) = List(new Edge(n, truenode, c._2, false))//arco da variabile a true per ogni variabile che compare in clausole unitarie positive
 		}
 		for(c <- clauses){
 			if(c._1.isNegative){
 				var l = 0
-				var falsenodeedges = g(falsenode)
+				var falsenodeedges = g(0)
 				for(l <- c._1.getLiterals){
-					falsenodeedges = (new Edge(falsenode, map(l.abs), c._2, false))::falsenodeedges 
+					falsenodeedges = (new Edge(falsenode, nodes(l.abs), c._2, false))::falsenodeedges 
 				}
-				g(falsenode) = falsenodeedges
+				g(0) = falsenodeedges
 			}
 			else{
 				var poslit = c._1.filter(l => l > 0).head
 				var l = 0
-				var n = map(poslit)
-				var edges = g(n)
+				var n = nodes(poslit)
+				var edges = g(poslit)
 				for(l <- c._1.getLiterals){
 					if(l < 0){
-						edges = (new Edge(n, map(l.abs), c._2, false))::edges 
+						edges = (new Edge(n, nodes(l.abs), c._2, false))::edges 
 					}
 				}
-				g(n) = edges
+				g(poslit) = edges
 			}
 		}
-		var graph = new HornGraph(g, formula)
-		graph.graphSetup(map, falsenode, truenode)
+		var graph = new HornGraph(formula)
+		graph.graphSetup(g, nodes)
 		//println(graph)
-		(graph, falsenode)
+		graph
 	}
 	
 	def unitPropagation(formula: Formula, assign:HashMap[Int,Boolean]):(Formula, HashMap[Int,Boolean]) = {

@@ -1,4 +1,4 @@
-sealed abstract class Node(var marked: Int){
+sealed abstract class Node(var marked: Int, val index: Int){
 	var computed: Boolean = false;
 	var truthvalue: Boolean = false;
 	
@@ -28,12 +28,12 @@ sealed abstract class Node(var marked: Int){
 	}
 	
 	def isVarNode: Boolean = this match{
-		case VarNode(_,_) => true
+		case VarNode(_,_,_) => true
 		case _ => false
 	}
 	
 	def getVariable: Int = this match{
-		case VarNode(v,_) => v
+		case VarNode(v,_,_) => v
 		case _ => 0
 	}
 	
@@ -49,14 +49,18 @@ sealed abstract class Node(var marked: Int){
 		this.marked
 	}
 	
+	def getIndex: Int = {
+		this.index
+	}
+	
 	def equals(n: Node): Boolean = (this, n) match {
-		case (VarNode(v, m), VarNode(v2, m2)) => v == v2 && m == m2
-		case (TruthNode(v, m), TruthNode(v2, m2)) => v == v2 && m == m2
+		case (VarNode(v, m, i), VarNode(v2, m2, i2)) => v == v2 && m == m2 && i == i2
+		case (TruthNode(v, m, i), TruthNode(v2, m2, i2)) => v == v2 && m == m2 && i == i2
 		case _ => false
 	}
 }
 
-case class VarNode(variable: Int, var marked_value: Int) extends Node(marked_value){
+case class VarNode(variable: Int, var marked_value: Int, val index_value: Int) extends Node(marked_value, index_value){
 	override def decreaseMarkedValue: Unit = {
 		this.marked_value = this.marked - 1
 	}
@@ -67,9 +71,13 @@ case class VarNode(variable: Int, var marked_value: Int) extends Node(marked_val
 	
 	override def getMarked: Int = {
 		this.marked_value
+	}
+	
+	override def getIndex: Int = {
+		this.index_value
 	}
 }
-case class TruthNode(value: Boolean, var marked_value: Int) extends Node(marked_value){
+case class TruthNode(value: Boolean, var marked_value: Int, val index_value: Int) extends Node(marked_value, index_value){
 	override def decreaseMarkedValue: Unit = {
 		this.marked_value = this.marked - 1
 	}
@@ -80,6 +88,10 @@ case class TruthNode(value: Boolean, var marked_value: Int) extends Node(marked_
 	
 	override def getMarked: Int = {
 		this.marked_value
+	}
+	
+	override def getIndex: Int = {
+		this.index_value
 	}
 }
 
