@@ -15,7 +15,6 @@ sealed abstract class Clause{
 		case E() => 0
 		case U(l) => 1
 		case C(v) => v.size
-		case _ => 0
 	}
 	
 	def toUnit: Clause = this match {
@@ -95,6 +94,6 @@ sealed abstract class Clause{
 }
 
 case class E() extends Clause				//clausola vuota
-case class U(l: Int) extends Clause			//clausola unit
-case class C(v: Set[Int]) extends Clause	//clausola composta da più literal
+case class U(l: Int) extends Clause			//clausola unitaria
+case class C(v: Set[Int]) extends Clause	//clausola composta da più letterali
 

@@ -20,6 +20,10 @@ class Formula(clauses: Set[Clause], corr: HashMap[Int, String]){
 	def isHorn: Boolean = {	
 		this.clauses.forall(c => c.isHorn)
 	}
+	
+	def isBinary: Boolean = {
+		this.clauses.forall(c => c.size == 2)
+	}
 
     override def toString: String = {
 		this.clauses.map(c => c.print(this.corr)+" ∧ ").reduce(_+_).dropRight(3)
@@ -53,8 +57,8 @@ class Formula(clauses: Set[Clause], corr: HashMap[Int, String]){
 		this.getLiterals.filter(l => l > 0).toList
 	}
 	
-	def getVariables: List[Int] = {
-		this.getLiterals.map(l => l.abs).toList
+	def getVariables: Set[Int] = {
+		this.getLiterals.map(l => l.abs)
 	}
 	
 	def removeClauses(clist: Set[Clause]):Formula = {
