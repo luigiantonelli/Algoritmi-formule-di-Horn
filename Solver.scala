@@ -1,33 +1,61 @@
 import scala.collection.mutable.HashMap
+import scala.collection.mutable.Stack
 
 object Solver{
-	def RHProp(ul: Set[Int], f: Formula, perm_val:HashMap[Int,(Boolean,Boolean)],temp_val:HashMap[Int,(Boolean,Boolean)], r: Boolean):
-	(Set[Int], HashMap[Int,(Boolean,Boolean)], HashMap[Int,(Boolean,Boolean)])= {
-		var unsetlit = ul
-		(unsetlit, perm_val, temp_val)
-	}
-	def RHTempProp(ul: Set[Int], f: Formula, perm_val:HashMap[Int,(Boolean,Boolean)],term_val:HashMap[Int,(Boolean,Boolean)], r: Boolean):
-	(Set[Int], HashMap[Int,(Boolean,Boolean)], HashMap[Int,(Boolean,Boolean)]) = {
+	def RHProp(x: Int, ul: scala.collection.Set[Int], f: Formula, p_val:HashMap[Int,(Boolean,Boolean)],t_val:HashMap[Int,(Boolean,Boolean)], r: Boolean):
+	(scala.collection.Set[Int], HashMap[Int,(Boolean,Boolean)], HashMap[Int,(Boolean,Boolean)], Boolean)= {
 		var unsetlit = ul
 		var renamable = r
-		var x = unsetlit.head
-		unsetlit = unsetlit - x
-		if(!t_val(x)._1)
-			RHProp(unsetvar, f, perm_val, temp_val)
-		t_val(x)._1 = true
-		t_val(x)._2 = true
-		var clauses = f.getClauses.filter(c => c containsLiteral (-x))
-		var c = E()
-		for(c <- clauses){
-			var lits = c.getLiterals.filter(l => l != -x)
-			var l = 0
-			for(l <- lits){
-				if(!renamable) (unsetlit, perm_val, temp_val)
-				if(temp_val(l)
+		var temp_val = t_val
+		var perm_val = p_val
+		
+		var stack = new Stack[Int](p_val.size)
+		var i = 0;
+		stack.push(x)
+		while(!stack.isEmpty){
+			var l = stack.pop()
+			var clauses = f.getClauses.filter(c => c containsLiteral (-l))
+			var c = E()
+			for(c <- clauses){
+				var lits = c.getLiterals.filter(_ != l)
+				var y = 0
+				for(y <- lits){
+					if(perm_val(y) == (false, true))
+						(Set(), perm_val, temp_val, false)
+					else if(!perm_val(y)._2){
+						perm_val(y) = (true, true)
+						perm_val(-y) = (false, true)
+						stack.push(y)
+					}
+				}
 			}
 		}
 		
-		(unsetlit, perm_val, temp_val)
+		(perm_val.keySet.filter(k => perm_val(k)._2 && temp_val(k)._2), perm_val, temp_val, renamable)
+	}
+	def RHTempProp(ul: scala.collection.Set[Int], f: Formula, p_val:HashMap[Int,(Boolean,Boolean)],t_val:HashMap[Int,(Boolean,Boolean)], r: Boolean):
+	(scala.collection.Set[Int], HashMap[Int,(Boolean,Boolean)], HashMap[Int,(Boolean,Boolean)], Boolean) = {
+		var unsetlit = ul
+		var renamable = r
+		var temp_val = t_val
+		var perm_val = p_val
+		var x = unsetlit.head
+		unsetlit = unsetlit - x
+		if(!temp_val(x)._1)
+			RHProp(x, unsetlit, f, perm_val, temp_val, renamable)
+		temp_val(x) = (true, true)
+		var clauses = f.getClauses.filter(c => c containsLiteral (-x))
+		var c = E()
+		for(c <- clauses){
+			var lits = c.getLiterals.filter(_ != -x)
+			var l = 0
+			for(l <- lits){
+				if(!renamable) (unsetlit, perm_val, temp_val, false)
+				if((!temp_val(l)._1 || !temp_val(l)._2)&&(!perm_val(l)._1 || !perm_val(l)._2))
+					RHTempProp(unsetlit, f, perm_val, temp_val, renamable)	
+			}
+		}
+		(unsetlit, perm_val, temp_val, renamable)
 	}
 	def RenamableHornSat(formula: Formula):(Boolean, List[(String,Boolean)]) = {
 		var assignment = Utils.buildAssignment(formula.numVariables)
@@ -40,12 +68,14 @@ object Solver{
 		var temp_val = new HashMap[Int,(Boolean,Boolean)](numVar,1)
 		var perm_val = new HashMap[Int,(Boolean,Boolean)](numVar,1)
 		var i = 0;
-		for(i <- f.getLiterals){
+		for(i <- f.getVariables){
 			temp_val.addOne(i -> (false,false))
 			perm_val.addOne(i -> (false,false))
+			temp_val.addOne(-i -> (false,false))
+			perm_val.addOne(-i -> (false,false))
 		}
 		//insieme dei letterali che hanno temp_val e perm_val non impostato
-		var unsetlit: Set[Int] = f.getLiterals
+		var unsetlit: scala.collection.Set[Int] = f.getLiterals
 		var renamable = true
 		while(renamable && !unsetlit.isEmpty){
 			val rhtp = RHTempProp(unsetlit, f, perm_val, temp_val, renamable)
@@ -65,8 +95,7 @@ object Solver{
 			}
 		}
 		else{
-			//ciclo da rifare
-			for(i <- perm_val.keySet){
+			for(i <- perm_val.keySet.map(_.abs)){
 				assignment(i) = perm_val(i)._1
 			}
 			(true, formula.getResult(assignment))

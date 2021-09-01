@@ -7,7 +7,7 @@ object HornMain extends App{
 	var f:Formula = Parser.getFormula
 	println(f)
 	
-	/*
+	
 	var res = Performance.profila(Solver.DPLL(f))
 	if(res._1._1){
 		println("Soddisfacibile (Ha impiegato " + res._2*1E-9 + " sec).")
@@ -16,8 +16,8 @@ object HornMain extends App{
 	else{
 		println("Non soddisfacibile.")
 	}
-	*/
-	/*
+	
+	
 	var res2 = Performance.profila(Solver.HornSat(f))
 	if(res2._1._1){
 		println("Soddisfacibile con HornSat (Ha impiegato " + res2._2*1E-9 + " sec).")
@@ -34,37 +34,23 @@ object HornMain extends App{
 	}
 	else{
 		println("Non soddisfacibile con greedyHorn (Ha impiegato " + res3._2*1E-9 + " sec).")
-	} */
-
-	/*
-	var g = Utils.buildGraph(f)
-	println(g._1)
-	println(g._1.getOutEdges(g._2))
-	*/
-	/*
+	} 
+	
 	var res4 = Performance.profila(Solver.graphHorn(f))
 	if(res4._1._1){
-		println("Soddisfacibile con graphHorn")
+		println("Soddisfacibile con graphHorn (Ha impiegato " + res4._2*1E-9 + " sec).")
 		println(res4._1._2)
 	}
 	else{
-		println("Non soddisfacibile con graphHorn")
-	} */
+		println("Non soddisfacibile con graphHorn (Ha impiegato " + res4._2*1E-9 + " sec).")
+	} 
 	
-	var n = VarNode(2,1)
-	var n2 = VarNode(3,1)
-	var e1 = new Edge(n,n2,1, false)
-	var e2 = new Edge(n2,n,2, false)
-	var m = new HashMap[Node, List[Edge]](2,1)
-	m.addOne(n -> List(e1))
-	m.addOne(n2 -> List(e2))
-	println(m)
-	println(m(n))
-	println(m(n2))
-	println(m(VarNode(2,1)))
-	
-	var i = VarNode(0,0)
-	for(i <- m.keySet){
-		println(m(i))
+	var res5 = Performance.profila(Solver.RenamableHornSat(f))
+	if(res5._1._1){
+		println("Soddisfacibile con RenamableHornSat(Ha impiegato " + res5._2*1E-9 + " sec).")
+		println(res5._1._2)
 	}
+	else{
+		println("Non soddisfacibile con RenamableHornSat (Ha impiegato " + res5._2*1E-9 + " sec).")
+	} 
 }
