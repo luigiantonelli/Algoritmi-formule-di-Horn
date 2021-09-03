@@ -21,6 +21,10 @@ class Formula(clauses: Set[Clause], corr: HashMap[Int, String]){
 		this.clauses.forall(c => c.isHorn)
 	}
 	
+	def isDualHorn: Boolean = {
+		this.clauses.forall(c => c.isDualHorn)
+	}
+	
 	def isBinary: Boolean = {
 		this.clauses.forall(c => c.size == 2)
 	}

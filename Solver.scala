@@ -58,51 +58,56 @@ object Solver{
 		(unsetlit, perm_val, temp_val, renamable)
 	}
 	def RenamableHornSat(formula: Formula):(Boolean, List[(String,Boolean)]) = {
+		var f = formula
 		var assignment = Utils.buildAssignment(formula.numVariables)
 		var up = Utils.unitPropagation(formula, assignment)
-		var f = up._1
+		f = up._1
 		assignment = up._2
-		if(f contains E())
+		if(f.isEmpty)
+			(true, formula.getResult(assignment))
+		else if(f contains E())
 			(false, Nil)
-		var numVar = f.numVariables
-		var temp_val = new HashMap[Int,(Boolean,Boolean)](numVar,1)
-		var perm_val = new HashMap[Int,(Boolean,Boolean)](numVar,1)
-		var i = 0;
-		for(i <- f.getVariables){
-			temp_val.addOne(i -> (false,false))
-			perm_val.addOne(i -> (false,false))
-			temp_val.addOne(-i -> (false,false))
-			perm_val.addOne(-i -> (false,false))
-		}
-		//insieme dei letterali che hanno temp_val e perm_val non impostato
-		var unsetlit: scala.collection.Set[Int] = f.getLiterals
-		var renamable = true
-		while(renamable && !unsetlit.isEmpty){
-			val rhtp = RHTempProp(unsetlit, f, perm_val, temp_val, renamable)
-			unsetlit = rhtp._1
-			perm_val = rhtp._2
-			temp_val = rhtp._3
-			renamable = rhtp._4
-		}
-		if(!renamable){
-			if(f.isBinary){//????????
-				println("La formula è Horn-rinominabile dopo la UnitPropagation, ma è insoddisfacibile")
-				(false, Nil)
+		else{
+			var numVar = f.numVariables
+			var temp_val = new HashMap[Int,(Boolean,Boolean)](numVar,1)
+			var perm_val = new HashMap[Int,(Boolean,Boolean)](numVar,1)
+			var i = 0;
+			for(i <- f.getVariables){
+				temp_val.addOne(i -> (false,false))
+				perm_val.addOne(i -> (false,false))
+				temp_val.addOne(-i -> (false,false))
+				perm_val.addOne(-i -> (false,false))
+			}
+			//insieme dei letterali che hanno temp_val e perm_val non impostato
+			var unsetlit: scala.collection.Set[Int] = f.getLiterals
+			var renamable = true
+			while(renamable && !unsetlit.isEmpty){
+				val rhtp = RHTempProp(unsetlit, f, perm_val, temp_val, renamable)
+				unsetlit = rhtp._1
+				perm_val = rhtp._2
+				temp_val = rhtp._3
+				renamable = rhtp._4
+			}
+			if(!renamable){
+				if(f.isBinary){//????????
+					println("La formula è Horn-rinominabile dopo la UnitPropagation, ma è insoddisfacibile")
+					(false, Nil)
+				}
+				else{
+					println("La formula non è Horn-rinominabile")
+					(false, Nil)
+				}
 			}
 			else{
-				println("La formula non è Horn-rinominabile")
-				(false, Nil)
+				for(i <- perm_val.keySet.map(_.abs)){
+					assignment(i) = perm_val(i)._1
+				}
+				(true, formula.getResult(assignment))
 			}
-		}
-		else{
-			for(i <- perm_val.keySet.map(_.abs)){
-				assignment(i) = perm_val(i)._1
-			}
-			(true, formula.getResult(assignment))
 		}
 	}
 	
-	def graphHorn(formula: Formula):(Boolean, List[(String,Boolean)]) = {
+	def graphHornSat(formula: Formula):(Boolean, List[(String,Boolean)]) = {
 		var f = formula
 		if(!f.isHorn){
 			println("La formula non è una formula di Horn.")

@@ -34,6 +34,12 @@ sealed abstract class Clause{
 		case C(v) => v.count(_ > 0) <= 1
 	}
 	
+	def isDualHorn: Boolean = this match {
+		case E() => true
+		case U(l) => true
+		case C(v) => v.count(_ < 0) <= 1
+	}
+	
 	def containsVariable(x: Int):Boolean = this match {
 		case E() => false
 		case U(l) => x == l.abs
@@ -43,10 +49,10 @@ sealed abstract class Clause{
 		}
 	}
 	
-	def map(f: Int => Any): List[(Int,Any)] = this match{
-		case E() => Nil
-		case U(l) => List((l,f(l)))
-		case C(v) => v.toList.map(l => (l,f(l)))
+	def map(f: Int => Int): Clause = this match{
+		case E() => E()
+		case U(l) => U(f(l))
+		case C(v) => C(v.map(e => f(e)))
 	}
 	
 	def filter(f: Int => Boolean): Set[Int] = this match{

@@ -107,4 +107,8 @@ object Utils{
 		}
 		assignment
 	}
+	
+	def invertFormula(f: Formula):Formula = {
+		new Formula(f.getClauses.map(c => c.map(e => -e)), f.getCorr)
+	}
 }
