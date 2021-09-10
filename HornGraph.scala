@@ -4,26 +4,39 @@ class HornGraph(formula: Formula){
 	private var size = formula.getVariables.size+2
 	var graph: HashMap[Int, List[Edge]] = new HashMap[Int, List[Edge]](size,1);
 	private var nodes: HashMap[Int, Node] = new HashMap[Int, Node](size,1);
-	private var numpos: Int = 0;
 	private var clauses = formula.getClauses.toList.zipWithIndex;
+	private var neglist: HashMap[Int, List[Int]] = new HashMap[Int, List[Int]](size-2,1);
 	private var numargs: HashMap[Int, Int] = new HashMap[Int,Int](clauses.size,1);
 	private var successors: HashMap[Int, HashMap[Int, List[Edge]]] = new HashMap[Int, HashMap[Int, List[Edge]]](size,1);
 	
+	private def initNegList: Unit = {
+		var i = 0;
+		for(i <- 1 to size){
+			neglist.addOne(i -> List())
+		}
+		for(i <- 0 until clauses.size){
+			val lits = clauses(i)._1.getLiterals.filter(_ < 0)
+			var j = 0
+			for(j <- lits){
+				neglist(j.abs) = clauses(i)._2::neglist(j.abs)
+			}
+		}
+	}
 	private def initNumArgs: Unit = {
-		//println("initNumArgs")
 		var i = (E(),0)
 		for(i <- 0 until clauses.size){
 			this.numargs.addOne(i -> clauses(i)._1.getLiterals.filter(_ < 0).size)
 		}
+		initNegList
 	}
 	private def updateNumArgs(n: Node):Unit = n match {
 		case VarNode(v, _, _) => {
-			//println("updateNumArgs")
-			val clist = clauses.filter(c => c._1.containsLiteral(-v))
+			val clist = neglist(n.getVariable)
 			var i = 0;
 			for(i <- 0 until clist.size){
-				numargs(clist(i)._2) = numargs(clist(i)._2) - 1
+				numargs(clist(i)) = numargs(clist(i)) - 1
 			}
+			
 		}
 		case _ => ()
 	}
@@ -39,22 +52,10 @@ class HornGraph(formula: Formula){
 	private def initSuccessors: Unit = {
 		var i = 0;
 		for(i <- this.graph.keySet){
-			//println("entro initSuccessors")
-			//println("\n\n graph:" + this.graph + "\n\n")
 			var edges = this.graph(i).groupBy(e => e.getLabel)
-			//println("ok initSuccessors")
 			var mapedges = createHashMapfromMap(edges)
 			successors.addOne(i -> mapedges)
-			//println("iterazione per " + nodes(i) + "ora succ = " + successors+ "\n\n")
 		}
-	}
-	private def setNumPos: Unit = {
-		//println("setNumPos")
-		this.numpos = this.formula.getClauses.filter(c => c.isUnit && c.getLiterals.head > 0).size
-	}
-	
-	def getNumPos: Int = {
-		this.numpos
 	}
 	
 	def getNodes: List[Node] = {
@@ -87,12 +88,9 @@ class HornGraph(formula: Formula){
 	def graphSetup(rg: HashMap[Int, List[Edge]], nodes: HashMap[Int, Node]): Unit = {
 		var rawgraph = rg
 		this.nodes = nodes
-		//println("\n\nRawgraph" + rawgraph + "\n\n")
 		rawgraph = this.resetVisit(rawgraph)
-		//println("\n\nRawgraph dopo modifica" + rawgraph + "\n\n")
 		this.graph = rawgraph	
 		this.initNumArgs
-		this.setNumPos
 		this.initSuccessors
 	}
 	
@@ -119,11 +117,7 @@ class HornGraph(formula: Formula){
 				updateNumArgs(n)
 			}
 			else{
-				//println("\n\n" + this.successors + "\n\n")
-				//println(this.successors.keySet)
 				var nsucc = this.successors(index)
-				//println(this.successors.keySet)
-				//println(nsucc)
 				var i = 0;
 				for(i <- nsucc.keySet){
 					var outedges = nsucc(i)

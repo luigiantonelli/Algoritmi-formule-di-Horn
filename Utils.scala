@@ -6,7 +6,7 @@ object Utils{
 			val sset = s.toSet
 			(cset -- sset).toList
 	}
-	def buildGraph(formula: Formula):HornGraph = {//restituisce il grafo e il nodo false da cui iniziare la visita
+	def buildGraph(formula: Formula):HornGraph = {
 		val variables = formula.getVariables
 		var g = new HashMap[Int, List[Edge]](variables.size + 2, 1)
 		var nodes = new HashMap[Int, Node](variables.size + 2, 1)
@@ -17,13 +17,12 @@ object Utils{
 		nodes.addOne(variables.size+1 -> truenode)
 		g.addOne(0 -> List[Edge]())
 		g.addOne(variables.size+1 -> List[Edge]())
-		//var nodes = Set[Node]()
 		
 		for(i <- variables){
 			var node = VarNode(i, 0, i)
 			nodes.addOne(i -> node)
 			g.addOne(i -> List[Edge]())
-			//nodes = nodes + node
+			
 		}
 		var clauses = formula.getClauses.toList.zipWithIndex
 		var posunitclauses = clauses.filter(c => c._1.isUnit).filter(c => c._1.getLiterals.head > 0)
@@ -32,7 +31,7 @@ object Utils{
 		for(c <- posunitclauses){
 			var n = nodes(c._1.getLiterals.head)
 			n.initTruthValue(true)
-			g(c._1.getLiterals.head) = List(new Edge(n, truenode, c._2, false))//arco da variabile a true per ogni variabile che compare in clausole unitarie positive
+			g(c._1.getLiterals.head) = List(new Edge(n, truenode, c._2, false))
 		}
 		for(c <- clauses){
 			if(c._1.isNegative){
@@ -58,7 +57,6 @@ object Utils{
 		}
 		var graph = new HornGraph(formula)
 		graph.graphSetup(g, nodes)
-		//println(graph)
 		graph
 	}
 	
